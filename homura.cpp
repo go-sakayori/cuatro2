@@ -3,4 +3,4 @@ kawahoshi
 untitti
 unnchi
 
-oomura small
+oomura is very small
