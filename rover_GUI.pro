@@ -16,7 +16,7 @@ LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui
 LIBS += -L/usr/local/lib -lGLU
 
 #This is for qwt plugin
-include(/home/go/Qt5.7.0/qwt-6.1.3/qwt.prf)
+include(../qwt-6.1.3/qwt.prf)
 CONFIG += qwt
 
 SOURCES += main.cpp\

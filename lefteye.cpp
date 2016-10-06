@@ -2,7 +2,7 @@
 
 LeftEye::LeftEye(QWidget *parent) : QGraphicsView(parent)
 {
-    mQImage.load("/home/go/Documents/mario.jpg");
+    mQImage.load("../../Documents/mario.jpg");
     mQImage = mQImage.convertToFormat(QImage::Format_ARGB32);
     setAlpha(128);
     mRect = QRect(0, 0, mQImage.width(), mQImage.height());
