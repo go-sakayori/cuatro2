@@ -4,7 +4,6 @@
 pitch::pitch(QWidget *parent) : QOpenGLWidget(parent)
 {
     float pitch_angle=0.0;
-std::cout<<"oomura"<<std::endl;
 }
 
 pitch::~pitch()
