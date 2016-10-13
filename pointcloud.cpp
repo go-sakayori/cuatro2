@@ -150,16 +150,23 @@ void PointCloud::read_data()
         std::vector<std::string> v;
         boost::algorithm::split(v, str, boost::is_any_of("\t"));
 
-        vertex[i][0] = std::atof(v[0].c_str())/1000;
-        vertex[i][1] = (std::atof(v[1].c_str()) )/1000;
-        vertex[i][2] = std::atof(v[2].c_str())/1000 + lrf_height;
+        double x_tmp = std::atof(v[0].c_str()) / 1000;
+        double y_tmp = std::atof(v[1].c_str()) / 1000;
+        double z_tmp = std::atof(v[2].c_str()) / 1000 + lrf_height;
+        double r_tmp = sqrt(x_tmp * x_tmp + y_tmp * y_tmp);
 
-        htmp = vertex[i][2];
-        if(htmp > hmax)
-            hmax = htmp;
-        if(htmp < hmin)
-            hmin = htmp;
-        i++;
+        if(r_tmp < 15.0 && z_tmp < 3.0){
+            vertex[i][0] = x_tmp;
+            vertex[i][1] = y_tmp;
+            vertex[i][2] = z_tmp;
+
+            htmp = vertex[i][2];
+            if(htmp > hmax && htmp < 3)
+                hmax = htmp;
+            if(htmp < hmin && htmp > -3)
+                hmin = htmp;
+            i++;
+        }
     }
     maxpoint = i;
     terrain.close();
