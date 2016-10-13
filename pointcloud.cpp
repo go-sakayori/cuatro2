@@ -161,9 +161,9 @@ void PointCloud::read_data()
             vertex[i][2] = z_tmp;
 
             htmp = vertex[i][2];
-            if(htmp > hmax && htmp < 3)
+            if(htmp > hmax)
                 hmax = htmp;
-            if(htmp < hmin && htmp > -3)
+            if(htmp < hmin)
                 hmin = htmp;
             i++;
         }
