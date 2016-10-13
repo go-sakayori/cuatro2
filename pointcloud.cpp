@@ -1,18 +1,19 @@
 #include "pointcloud.h"
 
+#include <QMouseEvent>
+#include <boost/algorithm/string.hpp>
+#include <sstream>
+#include <fstream>
+
 PointCloud::PointCloud(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-    xRot = 0;
-    yRot = 0;
-    zRot = 0;
-    xPal = 8;
-    yPal = 2;
-    zPal = 0;
+    alpha = 25;
+    beta = -25;
+    distance = 2.5;
     hmax = -10;
     hmin = 1000000;
     lrf_height = 0.0;
-    std::vector<std::vector<double>> vertex;
     read_data();
 
 }
@@ -22,135 +23,82 @@ PointCloud::~PointCloud()
 
 }
 
-static void qNormalizeAngle(int &angle)
-{
-    while (angle < 0)
-        angle += 360 * 16;
-    while (angle > 360)
-        angle -= 360 * 16;
-}
-
 void PointCloud::initializeGL()
 {
-    glClearColor(0,0,0,1);
-    glEnable(GL_DEPTH_TEST);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-}
-
-void PointCloud::paintGL()
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glLoadIdentity();
-    glTranslatef(-2.0, -2.0, -15.0);
-    glRotatef(xRot / 16.0, 1.0, 0.0, 0.0);
-    glRotatef(yRot / 16.0, 0.0, 1.0, 0.0);
-    glRotatef(zRot / 16.0, 0.0, 0.0, 1.0);
-    gluLookAt(xPal,yPal,30,xPal,yPal,0,1,0,0);
-    draw_axis();
-    draw();
+    initializeOpenGLFunctions();
+    glClearColor(0.0f, 0.0f, 0.0f, 0.1f);
+    glEnable(GL_DEPTH_TEST); //enable depth buffer
 }
 
 void PointCloud::resizeGL(int width, int height)
 {
-    glViewport(0,0,width,height);   
-      //プロジェクション・マトリックス設定
-      glMatrixMode (GL_PROJECTION);
-//      glMatrixMode (GL_MODELVIEW);
-//      glLoadIdentity();
-//      QMatrix4x4 m;
-//      m.lookAt(QVector3D(3.0, 4.0, 5.0),
-//                 QVector3D(0.0, 0.0, 0.0),
-//                 QVector3D(0.0, 1.0, 0.0) );
+    qreal aspect = qreal(width) / qreal(height ? height : 1); //calculate aspect ratio
+    const qreal zNear = 0.01, zFar = 100.0, fov = 30.0; // set near plane, far plane, field of view
 
-//      m.perspective(30, (qreal)width / (qreal)height, 1.0f, 100.0f);
-//      glMultMatrixd(m.data());
-//    glMatrixMode(GL_PROJECTION);
+    cv.perspective.setToIdentity(); //reset projection
+    cv.perspective.perspective(fov, aspect, zNear, zFar); //set perspective projection
+
+    glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    glMultMatrixf(cv.perspective.data());
 
-    GLdouble aspect = width / (height ? height : 1);
+    glViewport(0, 0, width, height);
+}
 
-    const GLdouble zNear = 1.0, zFar = 100.0, fov = 30.0;
-
-    perspective(fov, aspect, zNear, zFar);
-
+void PointCloud::paintGL()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color and depth buffer
     glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMultMatrixf(cv.lookat.data());
+
+//    QMatrix4x4 vMatrix;
+//    vMatrix.setToIdentity();
+
+//    QMatrix4x4 cameraTransformation;
+//    cameraTransformation.rotate(alpha, 0, 1, 0);
+//    cameraTransformation.rotate(beta, 1, 0, 0);
+//    QVector3D cameraPosition = cameraTransformation * QVector3D(0, 0, distance);
+//    QVector3D cameraUpDirection = cameraTransformation * QVector3D(0, 1, 0);
+
+//    vMatrix.lookAt(cameraPosition, QVector3D(0, 0, 0), cameraUpDirection);
+//    glMultMatrixf(vMatrix.data());
+
+    draw_axis();
+    draw();
+
 }
 
 void PointCloud::mousePressEvent(QMouseEvent *event)
 {
-    lastPos = event->pos();
+    cv.mousePressPosition = QVector2D(event->localPos());
 }
 
 void PointCloud::mouseMoveEvent(QMouseEvent *event)
 {
-    int dx = event->x() - lastPos.x();
-    int dy = event->y() - lastPos.y();
-
+    QVector2D diff = QVector2D(event->localPos()) - cv.mousePressPosition;
     if (event->buttons() & Qt::LeftButton) {
-        setXRotation(xRot + 4 * dy);
-        setYRotation(yRot + 4 * dx);
-    } else if (event->buttons() & Qt::RightButton) {
-        setXParallel(xPal + 1 * dy);
-        setYParallel(yPal + 1 * dx);
+       cv.phi -= 2 * diff.x() / width();
+       cv.theta += 2 * diff.y() / height();
+    }
+    else if (event->buttons() & Qt::RightButton) {
+    cv.eye += cv.left * diff.x() / (0.025 * width()) + cv.up * diff.y() / (0.025 * height());
     }
 
-    lastPos = event->pos();
+    update_variables();
+    cv.mousePressPosition = QVector2D(event->localPos());
+    update();
 }
 
-void PointCloud::setXRotation(int angle)
+void PointCloud::wheelEvent(QWheelEvent *event)
 {
-    qNormalizeAngle(angle);
-    if (angle != xRot) {
-        xRot = angle;
-        update();
-    }
-
-}
-void PointCloud::setXParallel(int angle)
-{
-    qNormalizeAngle(angle);
-    if (angle != xPal) {
-        xPal = angle;
-        update();
-    }
-}
-
-void PointCloud::setYRotation(int angle)
-{
-    qNormalizeAngle(angle);
-    if (angle != yRot) {
-        yRot = angle;
-        update();
-    }
-}
-
-void PointCloud::setYParallel(int angle)
-{
-    qNormalizeAngle(angle);
-    if (angle != yPal) {
-        yPal = angle;
-        update();
-    }
-}
-
-
-void PointCloud::setZRotation(int angle)
-{
-    qNormalizeAngle(angle);
-    if (angle != zRot) {
-        zRot = angle;
-        update();
-    }
-}
-void PointCloud::setZParallel(int angle)
-{
-    qNormalizeAngle(angle);
-    if (angle != zPal) {
-        zPal = angle;
-        update();
-    }
+    if (event->orientation() == Qt::Vertical)
+       {
+           int delta = event->delta() / 4;
+           cv.eye += delta * cv.forward / 10.0;
+           update_variables();
+           update();
+       }
 }
 
 
@@ -193,17 +141,6 @@ void PointCloud::draw()
     glEnd();
 }
 
-void PointCloud::perspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
-{
-    GLdouble xmin, xmax, ymin, ymax;
-
-    ymax = zNear * tan( fovy * M_PI / 360.0 );
-    ymin = -ymax;
-    xmin = ymin * aspect;
-    xmax = ymax * aspect;
-
-    glFrustum( xmin, xmax, ymin, ymax, zNear, zFar );
-}
 
 void PointCloud::read_data()
 {
@@ -237,4 +174,35 @@ void PointCloud::read_data()
     }
     maxpoint = i;
     terrain.close();
+}
+
+void PointCloud::update_variables()
+{
+    cv.forward.setZ(cv.r * sin(cv.theta) * cos(cv.phi));
+    cv.forward.setX(cv.r * sin(cv.theta) * sin(cv.phi));
+    cv.forward.setY(cv.r * cos(cv.theta));
+    cv.forward.normalize();
+
+    cv.up.setZ(cv.r * sin(cv.theta-M_PI_2) * cos(cv.phi));
+    cv.up.setX(cv.r * sin(cv.theta-M_PI_2) * sin(cv.phi));
+    cv.up.setY(cv.r * cos(cv.theta-M_PI_2));
+    cv.up.normalize();
+
+    cv.center = cv.eye + cv.forward;
+
+    cv.left = cv.left.crossProduct(cv.up, cv.forward);
+
+    cv.lookat.setToIdentity();
+    cv.lookat.lookAt(cv.eye,cv.center,cv.up);
+}
+
+PointCloud::ControlVariables::ControlVariables()
+{
+    //initialize lookat Variables
+    up = QVector3D(0, 0, 0);
+    center = QVector3D(0, 0, 0);
+    eye = QVector3D(-3, 0, 0);
+    r = eye.length();
+    theta = acos(-eye.y() /r );
+    phi = atan2(-eye.x(), -eye.z());
 }

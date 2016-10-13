@@ -1,17 +1,12 @@
 #ifndef POINTCLOUD_H
 #define POINTCLOUD_H
 
-#include <QGLWidget>
-#include <QtOpenGL>
-#include <QtWidgets>
-#include <boost/algorithm/string.hpp>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <GL/glu.h>
-#include<QMatrix4x4>
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
+#include <QMatrix4x4>
+#include <QVector2D>
 
-class PointCloud : public QOpenGLWidget
+class PointCloud : public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
@@ -25,28 +20,28 @@ protected:
 
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
 
 private:
-    void setXRotation(int angle);
-    void setYRotation(int angle);
-    void setZRotation(int angle);
-    void setXParallel(int angle);
-    void setYParallel(int angle);
-    void setZParallel(int angle);
     void draw_axis();
     void draw();
-    void perspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
     void read_data();
+    void update_variables();
 
-   // QMatrix4x4
-    int xRot;
-    int yRot;
-    int zRot;
-    int xPal;
-    int yPal;
-    int zPal;
+    struct ControlVariables
+    {
+        ControlVariables();
+        double r, phi, theta;
+        QMatrix4x4 perspective, lookat;
+        QVector3D eye, center, up;
+        QVector3D forward, left;
+        QVector2D mousePressPosition;
+    }cv, cv_backup;
 
-    QPoint lastPos;
+    double alpha;
+    double beta;
+    double distance;
+
     GLdouble vertex[25000*10][3];
     double hmax, hmin, lrf_height;
     int maxpoint;
