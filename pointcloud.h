@@ -38,10 +38,6 @@ private:
         QVector2D mousePressPosition;
     }cv, cv_backup;
 
-    double alpha;
-    double beta;
-    double distance;
-
     GLdouble vertex[25000*10][3];
     double hmax, hmin, lrf_height;
     int maxpoint;
