@@ -65,6 +65,7 @@ void PointCloud::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton) {
         cv.phi += 0.02 * diff.x();
         cv.theta += 0.02 * diff.y();
+        update_variables();
     }
     else if (event->buttons() & Qt::RightButton) {
         double x_tmp = cv.center.x() + diff.y() * 0.02;
@@ -72,11 +73,10 @@ void PointCloud::mouseMoveEvent(QMouseEvent *event)
         cv.center.setX(x_tmp);
         cv.center.setY(y_tmp);
         cv.center.setZ(0.0);
+        update_variables();
     }
 
-    update_variables();
     cv.mousePressPosition = QVector2D(event->localPos());
-    update();
 }
 
 void PointCloud::wheelEvent(QWheelEvent *event)
@@ -177,14 +177,15 @@ void PointCloud::update_variables()
 
     cv.lookat.setToIdentity();
     cv.lookat.lookAt(cv.eye, cv.center, cv.up);
+    update();
 }
 
 PointCloud::ControlVariables::ControlVariables()
 {
     //initialize lookat Variables
     up = QVector3D(0, 0, 1);
-    center = QVector3D(0, 0, 0);
-    eye = QVector3D(-3, 0, 0);
+    center = QVector3D(1, 0, 0);
+    eye = QVector3D(-5, 0, 2);
     r = eye.length();
     theta = acos(eye.z() /r );
     phi = atan2(eye.y(), eye.x());
