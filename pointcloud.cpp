@@ -147,7 +147,7 @@ void PointCloud::read_data()
     int i=0;
     double htmp = 0.0;
     std::string str;
-    std::string file = "/home/go/Qt5.7.0/data3D.txt";
+    std::string file = "../data3D.txt";
     std::ifstream terrain(file, std::ios::in);
 
     if(!terrain)
