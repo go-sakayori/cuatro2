@@ -1,3 +1,9 @@
+/*
+Code to display point cloud earned by LRF
+Fist Version: 13 Oct. 2016 by  G.Sakayori
+Last Modified: 13 Oct. 2016 by G.Sakayori
+*/
+
 #include "pointcloud.h"
 
 #include <QMouseEvent>
@@ -23,7 +29,7 @@ PointCloud::~PointCloud()
 void PointCloud::initializeGL()
 {
     initializeOpenGLFunctions();
-    glClearColor(0.0f, 0.0f, 0.0f, 0.1f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.1f); //specify clear values for the color buffer
     glEnable(GL_DEPTH_TEST); //enable depth buffer
 }
 
@@ -47,11 +53,10 @@ void PointCloud::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color and depth buffer
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glMultMatrixf(cv.lookat.data());
-
+    glMultMatrixf(cv.lookat.data()); //set position of camera
 
     draw_axis();
-    draw();
+    draw(); //draws the point cloud data
 }
 
 void PointCloud::mousePressEvent(QMouseEvent *event)
