@@ -27,7 +27,9 @@ SOURCES += main.cpp\
     roll.cpp \
     pitch.cpp \
     yaw.cpp \
-    rover_3d.cpp
+    rover_3d.cpp \
+    subwindow.cpp \
+    urgfile.cpp
 
 HEADERS  += mainwindow.h \
     pointcloud.h \
@@ -36,6 +38,9 @@ HEADERS  += mainwindow.h \
     roll.h \
     pitch.h \
     yaw.h \
-    rover_3d.h
+    rover_3d.h \
+    subwindow.h \
+    urgfile.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    subwindow.ui

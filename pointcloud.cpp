@@ -10,7 +10,8 @@ Last Modified: 13 Oct. 2016 by G.Sakayori
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <fstream>
-
+#include <iostream>
+#include <stdio.h>
 PointCloud::PointCloud(QWidget *parent)
     : QOpenGLWidget(parent)
 {
@@ -139,9 +140,20 @@ void PointCloud::draw()
 void PointCloud::read_data()
 {
     int i=0;
+    int urg_file_flag;
     double htmp = 0.0;
+    char *fp;
+    UrgFile flag;
     std::string str;
-    std::string file = "../data3D.txt";
+    urg_file_flag = flag.get_file_num(2);
+    sprintf(fp,"../data3D%03d.txt",urg_file_flag);
+
+    std::string file = "../data3D000.txt";
+
+    file = fp;
+
+    std::cout<<file<<endl;
+
     std::ifstream terrain(file, std::ios::in);
 
     if(!terrain)

@@ -5,7 +5,8 @@
 #include <QOpenGLFunctions>
 #include <QMatrix4x4>
 #include <QVector2D>
-
+#include "subwindow.h"
+#include "urgfile.h"
 class PointCloud : public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
